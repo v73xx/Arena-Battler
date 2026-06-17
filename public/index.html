@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Arena of Aetherfall — Bot Battler</title>
+<meta name="description" content="Build a champion, gear it up, and watch it clash in a miniature WoW-inspired arena battler." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== CONNECTION OVERLAY ===================== -->
+  <div id="connectionOverlay" class="overlay">
+    <div class="overlay-content">
+      <div class="ember-spinner"></div>
+      <p id="connectionStatus">Lighting the torches…</p>
+    </div>
+  </div>
+
+  <!-- ===================== TOAST / ERROR ===================== -->
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+  <!-- ===================== LOBBY SCREEN ===================== -->
+  <section id="lobbyScreen" class="screen hidden">
+    <div class="lobby-hero">
+      <h1 class="game-title">ARENA <span>of</span> AETHERFALL</h1>
+      <p class="tagline">Raise a champion. Gear it. Watch it fight. A miniature arena, yours to host.</p>
+    </div>
+
+    <div class="lobby-panels">
+
+      <!-- Entry: name + create/join -->
+      <div id="entryPanel" class="parchment-panel">
+        <h2 class="panel-title">Enter the Arena</h2>
+        <label class="field-label" for="nameInput">Champion's Banner Name</label>
+        <input id="nameInput" class="text-input" type="text" maxlength="18" placeholder="e.g. Alex" autocomplete="off" />
+
+        <div class="entry-actions">
+          <button id="createRoomBtn" class="btn btn-gold">Host New Arena</button>
+          <div class="divider"><span>or</span></div>
+          <label class="field-label" for="codeInput">Join With Code</label>
+          <div class="join-row">
+            <input id="codeInput" class="text-input code-input" type="text" maxlength="4" placeholder="A1B2" autocomplete="off" />
+            <button id="joinRoomBtn" class="btn btn-stone">Join</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Room: class select + roster + ready -->
+      <div id="roomPanel" class="parchment-panel hidden">
+        <div class="room-code-banner">
+          Arena Code: <strong id="roomCodeDisplay">----</strong>
+          <button id="copyCodeBtn" class="btn-mini" title="Copy code">Copy</button>
+          <span class="spectator-count" id="spectatorCount"></span>
+        </div>
+
+        <h2 class="panel-title">Choose Your Champion</h2>
+        <div id="classGrid" class="class-grid"></div>
+
+        <div class="ready-row">
+          <button id="readyBtn" class="btn btn-stone" disabled>Ready Up</button>
+          <button id="startBtn" class="btn btn-gold" disabled>Start Battle</button>
+        </div>
+
+        <h3 class="panel-subtitle">Champions Gathering</h3>
+        <div id="lobbyRoster" class="lobby-roster"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== MAIN GAME SCREEN ===================== -->
+  <section id="gameScreen" class="screen hidden">
+
+    <header id="topBar">
+      <div class="topbar-left">
+        <span class="brand-mini">AETHERFALL</span>
+        <span class="room-pill">Code <strong id="hudRoomCode">----</strong></span>
+      </div>
+      <div class="topbar-center">
+        <div id="phaseLabel" class="phase-label">Lobby</div>
+        <div id="phaseTimerWrap" class="phase-timer-wrap hidden">
+          <div id="phaseTimerBar" class="phase-timer-bar"></div>
+          <span id="phaseTimerText" class="phase-timer-text">45s</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div id="matchScore" class="match-score"></div>
+        <button id="menuToggleBtn" class="btn-mini menu-toggle">☰</button>
+      </div>
+    </header>
+
+    <div id="gameBody">
+
+      <aside id="rosterRail" class="roster-rail"></aside>
+
+      <main id="arenaWrap" class="arena-wrap">
+        <canvas id="arenaCanvas"></canvas>
+
+        <div id="roundOverlay" class="round-overlay hidden">
+          <div class="round-overlay-inner">
+            <h2 id="roundOverlayTitle">Round 1 Results</h2>
+            <div id="roundOverlayList" class="round-result-list"></div>
+            <p id="matchWinnerBanner" class="match-winner-banner hidden"></p>
+            <p class="round-overlay-sub">Next round begins shortly…</p>
+          </div>
+        </div>
+
+        <div id="prepBanner" class="prep-banner hidden">
+          <span>⚙ Prep phase — gear up and assign talents before the bell rings</span>
+        </div>
+      </main>
+
+      <aside id="sidePanel" class="side-panel">
+        <div class="side-tabs">
+          <button class="side-tab active" data-tab="shopTab">Shop</button>
+          <button class="side-tab" data-tab="talentsTab">Talents</button>
+        </div>
+        <div id="shopTab" class="tab-content">
+          <div class="gold-display">Gold: <strong id="goldAmount">0</strong></div>
+          <div id="shopCategories" class="shop-categories"></div>
+          <div id="shopList" class="shop-list"></div>
+        </div>
+        <div id="talentsTab" class="tab-content hidden">
+          <div class="talent-points-display">Talent Points: <strong id="talentPointsAmount">0</strong></div>
+          <div id="talentTrees" class="talent-trees"></div>
+        </div>
+      </aside>
+
+    </div>
+
+    <footer id="chatDock" class="chat-dock">
+      <div id="chatMessages" class="chat-messages"></div>
+      <form id="chatForm" class="chat-form">
+        <input id="chatInput" class="chat-input" type="text" maxlength="240" placeholder="Say something to the arena…" autocomplete="off" />
+        <button type="submit" class="btn-mini chat-send">Send</button>
+      </form>
+    </footer>
+
+  </section>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/gameData.js"></script>
+<script src="/js/arenaRenderer.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
