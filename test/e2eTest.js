@@ -55,7 +55,7 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 async function main() {
   console.log('Starting server subprocess...');
   const serverProc = spawn(process.execPath, [path.join(__dirname, '..', 'server.js')], {
-    env: { ...process.env, PORT: String(PORT), ARENA_PREP_MS: '1300', ARENA_ROUND_END_MS: '900' },
+    env: { ...process.env, PORT: String(PORT), ARENA_PREP_MS: '1300', ARENA_ROUND_END_MS: '900', ARENA_LOOT_MS: '1500' },
     stdio: ['ignore', 'pipe', 'pipe']
   });
   serverProc.stdout.on('data', () => {});
@@ -161,12 +161,53 @@ async function main() {
     check('combat produced at least one cast event', sawCast);
     check('roundResult has a summary array with 3 entries', Array.isArray(roundResult.summary) && roundResult.summary.length === 3);
     check('roundResult summary entries have placement 1-3', roundResult.summary.every(r => r.placement >= 1 && r.placement <= 3));
+    const firstPlace = roundResult.summary.find(r => r.placement === 1);
+    const lastPlace = roundResult.summary.find(r => r.placement === 3);
+    check('1st place XP gain exceeds 3rd place (placement-weighted reward)', firstPlace.xpGain > lastPlace.xpGain);
+    check('no summary entry earns a runaway/unbounded XP amount', roundResult.summary.every(r => r.xpGain < 400));
     console.log(`    (observed ${tickCount} ticks, event types: ${[...eventTypesSeen].join(', ')})`);
 
+    console.log('\n--- Scenario: loot phase (crate + world-drop roll) ---');
+    const lootStart = await waitForEvent(c1, 'lootPhaseStart', 3000);
+    check('loot phase start includes a world drop item with a rarity', !!lootStart.worldDrop && !!lootStart.worldDrop.item && !!lootStart.worldDrop.item.rarity);
+    check('loot phase start includes a winner crate for the round winner', !!lootStart.winnerCrate);
+
+    const winnerSocket = [c1, c2, c3].find((c, i) => [joined1, joined2, joined3][i].playerId === lootStart.winnerCrate.playerId);
+    let crateOpenedEvt = null;
+    c1.once('crateOpened', (d) => { crateOpenedEvt = d; });
+    if (winnerSocket) winnerSocket.emit('openCrate');
+    await sleep(250);
+    check('crate open is broadcast to the room', crateOpenedEvt !== null);
+
+    // Registered BEFORE the rolls are submitted: loot resolution (triggered
+    // by the final roll below) synchronously broadcasts the round-2 prep
+    // state, so listening only has to start after that would risk missing it.
+    const round2StatePromise = waitForEvent(c1, 'roomState', 5000, (s) => s.phase === 'prep' && s.round === 2);
+
+    let rollUpdates = [];
+    const rollHandler = (d) => rollUpdates.push(d);
+    c1.on('lootRollUpdate', rollHandler);
+    c1.emit('rollForLoot');
+    c2.emit('rollForLoot');
+    c3.emit('rollForLoot');
+    const lootResult = await waitForEvent(c1, 'lootPhaseResult', 3000);
+    c1.off('lootRollUpdate', rollHandler);
+    check('all 3 rolls were broadcast', rollUpdates.length === 3);
+    check('rolls are within 1-100 range', rollUpdates.every(r => r.roll >= 1 && r.roll <= 100));
+    check('loot phase resolved with a world-drop winner', !!lootResult.worldDrop.winnerId);
+
+    let dupeRollError = null;
+    c1.once('actionError', (e) => { dupeRollError = e; });
+    c1.emit('rollForLoot');
+    await sleep(200);
+    check('rolling again after resolution is rejected cleanly', dupeRollError !== null);
+
     // Confirm loop continues into round 2
-    const round2State = await waitForEvent(c1, 'roomState', 3000, (s) => s.phase === 'prep' && s.round === 2);
+    const round2State = await round2StatePromise;
     check('loop continued into round 2 prep phase', round2State.round === 2);
     check('gold persisted/increased after round 1 reward', round2State.players.every(p => p.gold > 0));
+    check('maxRounds is exposed to clients', round2State.maxRounds >= 1);
+    check('hostId is exposed and is the room creator', round2State.hostId === joined1.playerId);
 
     console.log('\n--- Scenario: chat broadcast ---');
     const chatPromise = waitForEvent(c2, 'chatMessage', 2000, (m) => m.text === 'gl hf everyone' && !m.system);
@@ -189,6 +230,56 @@ async function main() {
       rejoined.state.players.find(p => p.id === player3Id).gold === goldBeforeDisconnect);
     check('reconnected player marked connected again',
       rejoined.state.players.find(p => p.id === player3Id).connected === true);
+
+    console.log('\n--- Scenario: respec talents via socket ---');
+    let allocateError = null;
+    c1.once('actionError', (e) => { allocateError = e; });
+    c1.emit('allocateTalent', { talentId: 'warrior_blood_fury' });
+    await sleep(200);
+    const allocateSucceeded = allocateError === null;
+
+    let respecError = null;
+    c1.once('actionError', (e) => { respecError = e; });
+    c1.emit('respecTalents');
+    await sleep(200);
+    if (allocateSucceeded) {
+      check('respec succeeds via socket after a point was actually spent', respecError === null);
+    } else {
+      // Combat outcomes are non-deterministic now (see FFNN targeting), so the
+      // host may not have leveled up after a single round — in that case the
+      // talent point never got spent, and respec should cleanly say so.
+      check('respec correctly rejected via socket when no points were spent', respecError !== null && /no talent points/i.test(respecError.error));
+    }
+
+    console.log('\n--- Scenario: host-only end game + play again ---');
+    let nonHostEndError = null;
+    c2.once('actionError', (e) => { nonHostEndError = e; });
+    c2.emit('endGame');
+    await sleep(200);
+    check('non-host endGame request is rejected', nonHostEndError && /only the host/i.test(nonHostEndError.error));
+
+    const gameOverPromise = waitForEvent(c1, 'gameOver', 3000);
+    const gameOverStatePromise = waitForEvent(c1, 'roomState', 3000, (s) => s.phase === 'gameOver');
+    c1.emit('endGame'); // c1 is the host (room creator)
+    const gameOverData = await gameOverPromise;
+    check('gameOver event includes standings for all 3 players', Array.isArray(gameOverData.standings) && gameOverData.standings.length === 3);
+    check('standings are ranked starting at placement 1', gameOverData.standings[0].placement === 1);
+
+    const gameOverState = await gameOverStatePromise;
+    check('room state reflects gameOver phase', gameOverState.phase === 'gameOver');
+
+    let nonHostPlayAgainError = null;
+    c3b.once('actionError', (e) => { nonHostPlayAgainError = e; });
+    c3b.emit('playAgain');
+    await sleep(200);
+    check('non-host playAgain request is rejected', nonHostPlayAgainError && /only the host/i.test(nonHostPlayAgainError.error));
+
+    c1.emit('playAgain');
+    const lobbyAgainState = await waitForEvent(c1, 'roomState', 2000, (s) => s.phase === 'lobby');
+    check('play again returns the room to lobby phase', lobbyAgainState.phase === 'lobby');
+    check('play again resets round counter to 0', lobbyAgainState.round === 0);
+    check('play again resets every player\'s gold to the starting amount', lobbyAgainState.players.every(p => p.gold === 500));
+    check('play again clears bots so players must re-pick a class', lobbyAgainState.players.every(p => p.bot === null));
 
     console.log('\n--- Scenario: 4th joiner becomes spectator, room stays at 3 ---');
     const c4 = ioClient(BASE_URL, { transports: ['websocket'] });

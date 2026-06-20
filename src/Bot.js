@@ -13,7 +13,7 @@ class Bot {
     this.xpToNextLevel = 300;
     this.talentPoints = 0;
     this.talents = {};        // talentId -> rank
-    this.items = [];          // purchased item ids
+    this.items = [];          // full item objects (shop items AND generated loot)
 
     /* position */
     this.x = 400;
@@ -51,13 +51,27 @@ class Bot {
     this.baseAttackPower    = Math.floor(base.attackPower  * lm);
     this.baseSpellPower     = Math.floor(base.spellPower   * lm);
     this.armor              = Math.floor(base.armor        * lm);
-    this.speed              = base.speed;
+    this.speed               = base.speed;
     this.baseCritChance     = base.critChance;
     this.baseDodgeChance    = base.dodgeChance;
     this.autoAttackInterval = base.autoAttackInterval;
     this.abilities          = cls.abilities;
     this.classColor         = cls.color;
     this.icon               = cls.icon;
+  }
+
+  /* Recompute every derived stat from scratch: base class/level stats,
+     then re-apply all owned items, then all spent talent points. Used
+     whenever level, items, or talent allocation changes, so stats never
+     drift from a single source of truth no matter the order of changes. */
+  _recalculateAllStats() {
+    const prevHpRatio = this.maxHp ? this.hp / this.maxHp : 1;
+    const prevManaRatio = this.maxMana ? this.mana / this.maxMana : 1;
+    this._initBaseStats();
+    this._reapplyItems();
+    this._reapplyTalents();
+    this.hp = Math.max(0, Math.floor(this.maxHp * prevHpRatio));
+    this.mana = Math.max(0, Math.floor(this.maxMana * prevManaRatio));
   }
 
   /* Effective stats include buffs */
@@ -83,13 +97,13 @@ class Bot {
   prepareForBattle() {
     this.hp              = this.maxHp;
     this.mana            = this.maxMana;
-    this.alive           = true;
-    this.state           = 'idle';
-    this.stateTimer      = 0;
-    this.buffs           = [];
-    this.dots            = [];
-    this.targetId        = null;
-    this.autoAttackTimer = 0;
+    this.alive            = true;
+    this.state            = 'idle';
+    this.stateTimer       = 0;
+    this.buffs            = [];
+    this.dots             = [];
+    this.targetId         = null;
+    this.autoAttackTimer  = 0;
     this.abilityCooldowns = {};
   }
 
@@ -107,23 +121,15 @@ class Bot {
     this.level++;
     this.talentPoints++;
     this.xpToNextLevel = Math.floor(300 * Math.pow(1.14, this.level - 1));
-    const prevHpRatio = this.hp / this.maxHp;
-    this._initBaseStats();
-    // Re-apply item bonuses
-    this._reapplyItems();
-    // Re-apply talent bonuses
-    this._reapplyTalents();
-    this.hp   = Math.floor(this.maxHp * prevHpRatio);
-    this.mana = this.maxMana;
+    this._recalculateAllStats();
+    this.mana = this.maxMana; // level-up grants a full mana refill on top of the ratio-preserving recalc
     return true;
   }
 
   _reapplyItems() {
-    /* stored items are applied cumulatively - we track purchased item ids
-       and re-apply their stat deltas on top of base */
-    const { SHOP_ITEMS } = require('../public/js/gameData');
-    for (const itemId of this.items) {
-      const item = SHOP_ITEMS.find(i => i.id === itemId);
+    /* items are stored as full objects now (covers both shop items and
+       procedurally generated loot, which has no static table to look up) */
+    for (const item of this.items) {
       if (item && item.stats) this._applyItemStats(item.stats);
     }
   }
@@ -148,11 +154,31 @@ class Bot {
   }
 
   applyItem(item) {
-    this.items.push(item.id);
+    this.items.push(item);
     if (item.stats) this._applyItemStats(item.stats);
     // Refill HP/mana to new max on item equip
     this.hp   = Math.min(this.hp, this.maxHp);
     this.mana = Math.min(this.mana, this.maxMana);
+  }
+
+  hasItem(itemId) { return this.items.some(it => it.id === itemId); }
+
+  /* Tier gating: a talent's tier requires (tier-1)*3 points already spent
+     somewhere in that same tree (offense/defense/mastery) for this class —
+     since each tier here is exactly one talent at maxRank 3, this means
+     "fully invest the previous row before the next row unlocks", the same
+     shape as a classic WoW talent tree. */
+  pointsInvestedInTree(className, tree) {
+    const { TALENT_TREES } = require('../public/js/gameData');
+    return Object.entries(this.talents)
+      .filter(([tid]) => TALENT_TREES[tid] && TALENT_TREES[tid].className === className && TALENT_TREES[tid].tree === tree)
+      .reduce((sum, [, rank]) => sum + rank, 0);
+  }
+
+  isTalentTierUnlocked(talent) {
+    const required = (talent.tier - 1) * 3;
+    if (required <= 0) return true;
+    return this.pointsInvestedInTree(talent.className, talent.tree) >= required;
   }
 
   allocateTalent(talentId) {
@@ -163,10 +189,23 @@ class Bot {
     const currentRank = this.talents[talentId] || 0;
     if (currentRank >= talent.maxRank) return false;
     if (this.talentPoints <= 0) return false;
+    if (!this.isTalentTierUnlocked(talent)) return false;
 
     this.talents[talentId] = currentRank + 1;
     this.talentPoints--;
     this._applyTalentEffect(talent, 1); // apply one rank delta
+    return true;
+  }
+
+  /* Refund every spent talent point and fully recompute stats from
+     scratch (items re-applied, talents cleared). Allowed any time outside
+     active battle — enforced by the caller (GameRoom), not here. */
+  respecTalents() {
+    const spentPoints = Object.values(this.talents).reduce((sum, r) => sum + r, 0);
+    if (spentPoints === 0) return false;
+    this.talentPoints += spentPoints;
+    this.talents = {};
+    this._recalculateAllStats();
     return true;
   }
 
@@ -237,7 +276,7 @@ class Bot {
       xpToNextLevel:       this.xpToNextLevel,
       talentPoints:        this.talentPoints,
       talents:             { ...this.talents },
-      items:               [...this.items],
+      items:               this.items.map(it => ({ ...it })),
       hp:                  this.hp,
       maxHp:               this.maxHp,
       mana:                this.mana,

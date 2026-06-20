@@ -90,6 +90,7 @@
       </div>
       <div class="topbar-right">
         <div id="matchScore" class="match-score"></div>
+        <button id="endGameBtn" class="btn-mini end-game-btn hidden" title="End the game now">End Game</button>
         <button id="menuToggleBtn" class="btn-mini menu-toggle">☰</button>
       </div>
     </header>
@@ -105,8 +106,38 @@
           <div class="round-overlay-inner">
             <h2 id="roundOverlayTitle">Round 1 Results</h2>
             <div id="roundOverlayList" class="round-result-list"></div>
-            <p id="matchWinnerBanner" class="match-winner-banner hidden"></p>
+            <p class="round-overlay-sub">Loot incoming…</p>
+          </div>
+        </div>
+
+        <div id="lootOverlay" class="round-overlay hidden">
+          <div class="round-overlay-inner loot-overlay-inner">
+            <h2>🎁 Spoils of Battle</h2>
+
+            <div id="lootCrateSection" class="loot-section hidden">
+              <h3 class="loot-section-title">Winner's Crate</h3>
+              <div id="lootCrateCard" class="loot-item-card"></div>
+              <button id="openCrateBtn" class="btn btn-gold hidden">Open Crate</button>
+              <p id="crateWaitingNote" class="loot-waiting-note hidden">Waiting for the crate to be opened…</p>
+            </div>
+
+            <div class="loot-section">
+              <h3 class="loot-section-title">World Drop — Roll to Claim</h3>
+              <div id="lootWorldCard" class="loot-item-card"></div>
+              <button id="rollLootBtn" class="btn btn-stone">🎲 Roll</button>
+              <div id="lootRollList" class="loot-roll-list"></div>
+            </div>
+
             <p class="round-overlay-sub">Next round begins shortly…</p>
+          </div>
+        </div>
+
+        <div id="gameOverOverlay" class="round-overlay hidden">
+          <div class="round-overlay-inner">
+            <h2>🏆 Game Over</h2>
+            <div id="gameOverStandings" class="round-result-list"></div>
+            <button id="playAgainBtn" class="btn btn-gold hidden">Play Again</button>
+            <p id="playAgainWaitingNote" class="loot-waiting-note hidden">Waiting for the host to start a new game…</p>
           </div>
         </div>
 
@@ -122,11 +153,18 @@
         </div>
         <div id="shopTab" class="tab-content">
           <div class="gold-display">Gold: <strong id="goldAmount">0</strong></div>
+          <div id="inventorySection" class="inventory-section hidden">
+            <h3 class="loot-section-title">Your Gear</h3>
+            <div id="inventoryList" class="inventory-list"></div>
+          </div>
           <div id="shopCategories" class="shop-categories"></div>
           <div id="shopList" class="shop-list"></div>
         </div>
         <div id="talentsTab" class="tab-content hidden">
-          <div class="talent-points-display">Talent Points: <strong id="talentPointsAmount">0</strong></div>
+          <div class="talent-points-row">
+            <div class="talent-points-display">Talent Points: <strong id="talentPointsAmount">0</strong></div>
+            <button id="respecBtn" class="btn-mini respec-btn">Reset Talents</button>
+          </div>
           <div id="talentTrees" class="talent-trees"></div>
         </div>
       </aside>

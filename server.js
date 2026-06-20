@@ -119,6 +119,46 @@ io.on('connection', (socket) => {
     if (!result.success) socket.emit('actionError', { error: result.error });
   });
 
+  socket.on('respecTalents', () => {
+    const room = currentRoom();
+    if (!room) return;
+    const session = sessions.get(socket.id);
+    const result = room.respecTalents(session.playerId);
+    if (!result.success) socket.emit('actionError', { error: result.error });
+  });
+
+  socket.on('endGame', () => {
+    const room = currentRoom();
+    if (!room) return;
+    const session = sessions.get(socket.id);
+    const result = room.endGame(session.playerId);
+    if (!result.success) socket.emit('actionError', { error: result.error });
+  });
+
+  socket.on('playAgain', () => {
+    const room = currentRoom();
+    if (!room) return;
+    const session = sessions.get(socket.id);
+    const result = room.playAgain(session.playerId);
+    if (!result.success) socket.emit('actionError', { error: result.error });
+  });
+
+  socket.on('openCrate', () => {
+    const room = currentRoom();
+    if (!room) return;
+    const session = sessions.get(socket.id);
+    const result = room.openCrate(session.playerId);
+    if (!result.success) socket.emit('actionError', { error: result.error });
+  });
+
+  socket.on('rollForLoot', () => {
+    const room = currentRoom();
+    if (!room) return;
+    const session = sessions.get(socket.id);
+    const result = room.rollForLoot(session.playerId);
+    if (!result.success) socket.emit('actionError', { error: result.error });
+  });
+
   socket.on('chatMessage', ({ text } = {}) => {
     const room = currentRoom();
     if (!room) return;

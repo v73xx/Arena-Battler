@@ -1,10 +1,13 @@
 'use strict';
 const { ABILITIES, AI_PROFILES } = require('../public/js/gameData');
+const NeuralTargeting = require('./NeuralTargeting');
 
 const ARENA_WIDTH    = 900;
 const ARENA_HEIGHT   = 560;
 const PIXELS_PER_SEC = 110;   // base movement speed multiplier
-const ARMOR_K        = 400;   // armor mitigation constant
+const ARMOR_K        = 400;   // physical armor mitigation constant
+const MAGIC_ARMOR_K  = 1100;  // magic/nature/fire/shadow get weaker mitigation from armor ("spell resist" lite)
+const CRIT_MULTIPLIER = 1.6;  // was a flat 2x — toned down so bursts aren't one-shots
 const MATCH_TIMEOUT  = 90000; // sudden-death fallback (ms)
 const BOT_RADIUS     = 21;    // for separation / arena clamping
 
@@ -159,11 +162,19 @@ class CombatEngine {
       return 0;
     }
     const isCrit = Math.random() < source.critChance;
-    let dmg = rawAmount * (isCrit ? 2 : 1);
+    let dmg = rawAmount * (isCrit ? CRIT_MULTIPLIER : 1);
     if (damageType === 'physical') {
       const reduction = Math.min(0.75, target.armor / (target.armor + ARMOR_K));
       dmg *= (1 - reduction);
+    } else if (damageType === 'magic' || damageType === 'fire' || damageType === 'shadow' || damageType === 'nature') {
+      // Spells aren't fully unmitigated — armor offers a smaller amount of
+      // protection against them too, so casters can't ignore tankier targets.
+      const reduction = Math.min(0.45, target.armor / (target.armor + MAGIC_ARMOR_K));
+      dmg *= (1 - reduction);
     }
+    // 'holy' damage ignores armor entirely (thematically: holy magic
+    // bypasses worldly protection — and it's the Paladin's own damage type,
+    // so this doesn't compound the burst problem).
     dmg = Math.max(1, Math.floor(dmg));
     target.hp = Math.max(0, target.hp - dmg);
     events.push({ type: 'damage', sourceId: source.id, targetId: target.id, amount: dmg, abilityId, isCrit: !!isCrit });
@@ -189,10 +200,11 @@ class CombatEngine {
   _pickTarget(bot) {
     const enemies = this.bots.filter(b => b.id !== bot.id && b.alive);
     if (!enemies.length) return null;
-    const current = bot.targetId ? this.getBot(bot.targetId) : null;
-    if (current && current.alive && enemies.length > 1 && Math.random() < 0.85) return current;
-    const byWeakest = [...enemies].sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp));
-    return byWeakest[0];
+    const profile = AI_PROFILES[bot.className];
+    return NeuralTargeting.selectTarget(bot, enemies, (a, b) => this._dist(a, b), {
+      maxRange: profile ? profile.autoAttackRange : 400,
+      temperature: 0.45
+    });
   }
 
   _moveToward(bot, target, dt) {

@@ -19,7 +19,7 @@
       role: 'Melee DPS / Tank',
       baseStats: {
         hp: 2400, mana: 600, attackPower: 180, spellPower: 20,
-        armor: 200, speed: 1.3, critChance: 0.06, dodgeChance: 0.04,
+        armor: 215, speed: 1.3, critChance: 0.06, dodgeChance: 0.04,
         autoAttackInterval: 1600
       },
       abilities: ['heroicStrike', 'shieldBash', 'whirlwind', 'battleCry'],
@@ -31,8 +31,8 @@
       description: 'Arcane master. Glass cannon with freezes and fireballs.',
       role: 'Ranged Magic DPS',
       baseStats: {
-        hp: 1600, mana: 2200, attackPower: 40, spellPower: 280,
-        armor: 55, speed: 1.6, critChance: 0.09, dodgeChance: 0.03,
+        hp: 1650, mana: 2200, attackPower: 40, spellPower: 238,
+        armor: 75, speed: 1.6, critChance: 0.08, dodgeChance: 0.03,
         autoAttackInterval: 2000
       },
       abilities: ['fireball', 'frostNova', 'arcaneBlast', 'iceBlock'],
@@ -44,8 +44,8 @@
       description: 'Holy warrior. Heals while dealing damage, nearly unkillable.',
       role: 'Support Hybrid',
       baseStats: {
-        hp: 2100, mana: 1500, attackPower: 125, spellPower: 145,
-        armor: 185, speed: 1.4, critChance: 0.05, dodgeChance: 0.05,
+        hp: 2280, mana: 1500, attackPower: 130, spellPower: 150,
+        armor: 210, speed: 1.4, critChance: 0.05, dodgeChance: 0.05,
         autoAttackInterval: 1800
       },
       abilities: ['holyStrike', 'divineShield', 'judgement', 'layOnHands'],
@@ -57,8 +57,8 @@
       description: 'Ranged predator. High crit chance and relentless DoTs.',
       role: 'Ranged Physical DPS',
       baseStats: {
-        hp: 1850, mana: 1300, attackPower: 205, spellPower: 45,
-        armor: 105, speed: 1.9, critChance: 0.11, dodgeChance: 0.07,
+        hp: 1900, mana: 1300, attackPower: 200, spellPower: 45,
+        armor: 125, speed: 1.9, critChance: 0.10, dodgeChance: 0.07,
         autoAttackInterval: 1700
       },
       abilities: ['aimedShot', 'multiShot', 'serpentSting', 'deterrence'],
@@ -70,8 +70,8 @@
       description: 'Shadow assassin. Fastest attacker with brutal burst damage.',
       role: 'Burst Melee DPS',
       baseStats: {
-        hp: 1750, mana: 850, attackPower: 225, spellPower: 20,
-        armor: 82, speed: 2.1, critChance: 0.13, dodgeChance: 0.11,
+        hp: 1800, mana: 850, attackPower: 222, spellPower: 20,
+        armor: 90, speed: 2.1, critChance: 0.12, dodgeChance: 0.11,
         autoAttackInterval: 1200
       },
       abilities: ['sinisterStrike', 'backstab', 'evasion', 'shadowstep'],
@@ -83,8 +83,8 @@
       description: 'Fel sorcerer. DoTs, fear, and soul-draining corruption.',
       role: 'DoT / Control Caster',
       baseStats: {
-        hp: 1750, mana: 1900, attackPower: 50, spellPower: 255,
-        armor: 68, speed: 1.5, critChance: 0.07, dodgeChance: 0.03,
+        hp: 1800, mana: 1900, attackPower: 50, spellPower: 260,
+        armor: 85, speed: 1.5, critChance: 0.07, dodgeChance: 0.03,
         autoAttackInterval: 2000
       },
       abilities: ['curseOfAgony', 'drainLife', 'fear', 'chaosBolt'],
@@ -98,7 +98,7 @@
     heroicStrike: {
       id: 'heroicStrike', name: 'Heroic Strike', icon: '⚔️',
       type: 'melee', damageType: 'physical',
-      damage: 1.7, cooldown: 6000, manaCost: 30, range: 75,
+      damage: 1.7, cooldown: 5000, manaCost: 30, range: 75,
       description: 'Brutal strike dealing 170% AP.',
       color: '#FFD700', particleColor: '#FFB800', sfxType: 'slash'
     },
@@ -128,9 +128,9 @@
     fireball: {
       id: 'fireball', name: 'Fireball', icon: '🔥',
       type: 'projectile', damageType: 'magic',
-      damage: 1.45, cooldown: 3000, manaCost: 85, range: 420,
+      damage: 1.30, cooldown: 3000, manaCost: 85, range: 420,
       projectileSpeed: 380,
-      description: 'Fiery bolt dealing 145% SP.',
+      description: 'Fiery bolt dealing 130% SP.',
       color: '#FF4400', particleColor: '#FF6600', sfxType: 'fire'
     },
     frostNova: {
@@ -144,9 +144,9 @@
     arcaneBlast: {
       id: 'arcaneBlast', name: 'Arcane Blast', icon: '✨',
       type: 'projectile', damageType: 'magic',
-      damage: 1.9, cooldown: 8000, manaCost: 150, range: 420,
+      damage: 1.55, cooldown: 8000, manaCost: 150, range: 420,
       projectileSpeed: 500,
-      description: 'Arcane bolt dealing 190% SP.',
+      description: 'Arcane bolt dealing 155% SP.',
       color: '#CC00FF', particleColor: '#EE88FF', sfxType: 'arcane'
     },
     iceBlock: {
@@ -160,13 +160,13 @@
     holyStrike: {
       id: 'holyStrike', name: 'Holy Strike', icon: '✝️',
       type: 'melee', damageType: 'holy',
-      damage: 1.0, healSelf: 0.35, cooldown: 8000, manaCost: 65, range: 75,
-      description: 'Deal damage and heal yourself for 35% SP.',
+      damage: 1.0, healSelf: 0.5, cooldown: 8000, manaCost: 65, range: 75,
+      description: 'Deal damage and heal yourself for 50% SP.',
       color: '#FFD700', particleColor: '#FFFFAA', sfxType: 'holy'
     },
     divineShield: {
       id: 'divineShield', name: 'Divine Shield', icon: '🌟',
-      type: 'defensive', cooldown: 120000, manaCost: 210,
+      type: 'defensive', cooldown: 100000, manaCost: 210,
       immune: 4500,
       description: 'Immune to all for 4.5s. (Bubble!)',
       color: '#FFD700', particleColor: '#FFFFFF', sfxType: 'holy'
@@ -190,9 +190,9 @@
     aimedShot: {
       id: 'aimedShot', name: 'Aimed Shot', icon: '🎯',
       type: 'projectile', damageType: 'physical',
-      damage: 2.3, cooldown: 10000, manaCost: 85, range: 460,
+      damage: 1.95, cooldown: 10000, manaCost: 85, range: 460,
       projectileSpeed: 620,
-      description: 'Precisely aimed shot dealing 230% AP.',
+      description: 'Precisely aimed shot dealing 195% AP.',
       color: '#ABD473', particleColor: '#CCFF88', sfxType: 'arrow'
     },
     multiShot: {
@@ -228,8 +228,8 @@
     backstab: {
       id: 'backstab', name: 'Backstab', icon: '💀',
       type: 'melee', damageType: 'physical',
-      damage: 2.6, cooldown: 10000, manaCost: 45, range: 75,
-      description: 'Devastating stab dealing 260% AP.',
+      damage: 2.3, cooldown: 9500, manaCost: 45, range: 75,
+      description: 'Devastating stab dealing 230% AP.',
       color: '#FF0044', particleColor: '#FF4488', sfxType: 'stab'
     },
     evasion: {
@@ -273,12 +273,58 @@
     chaosBolt: {
       id: 'chaosBolt', name: 'Chaos Bolt', icon: '💥',
       type: 'projectile', damageType: 'fire',
-      damage: 2.1, cooldown: 12000, manaCost: 170, range: 420,
+      damage: 1.85, cooldown: 12000, manaCost: 170, range: 420,
       projectileSpeed: 340, piercing: true,
-      description: 'Unstoppable chaos bolt dealing 210% SP.',
+      description: 'Unstoppable chaos bolt dealing 185% SP.',
       color: '#FF4400', particleColor: '#FF8844', sfxType: 'fire'
     }
   };
+
+  /* ── LOOT RARITY TIERS ────────────────────────────────── */
+  /* weight = relative drop chance. statBudgetMult scales total stat points
+     on a generated item relative to a baseline tier-2 shop item of the same
+     level. Order is the standard ascending rarity ladder. */
+  const RARITY_TIERS = {
+    common:    { key: 'common',    label: 'Common',    color: '#B8B6BD', weight: 42, statBudgetMult: 0.85, statCount: [1, 2] },
+    uncommon:  { key: 'uncommon',  label: 'Uncommon',  color: '#3FBF50', weight: 30, statBudgetMult: 1.10, statCount: [2, 2] },
+    rare:      { key: 'rare',      label: 'Rare',      color: '#3F8FE0', weight: 17, statBudgetMult: 1.45, statCount: [2, 3] },
+    epic:      { key: 'epic',      label: 'Epic',      color: '#A84FE8', weight: 8,  statBudgetMult: 1.90, statCount: [3, 4] },
+    legendary: { key: 'legendary', label: 'Legendary', color: '#E89A3C', weight: 3,  statBudgetMult: 2.60, statCount: [3, 4] }
+  };
+  const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+
+  /* Procedural naming parts, organized by slot. The generator (server-side)
+     picks one prefix + one base noun to build a flavorful item name. */
+  const LOOT_NAME_PARTS = {
+    weapon: {
+      prefixes: ['Bloodforged', "Gladiator's", 'Runed', 'Savage', 'Doomforged', 'Sanctified', 'Berserker\'s', 'Venomstrike', 'Stormcaller\'s', 'Ashen'],
+      nouns: ['Blade', 'Greataxe', 'Warstaff', 'Longbow', 'Dagger', 'Maul', 'Cleaver', 'Wand', 'Spellbook', 'Battlehammer']
+    },
+    armor: {
+      prefixes: ['Reinforced', "Champion's", 'Hardened', 'Sanctified', 'Drakeforged', 'Grim', 'Resolute', 'Wyrmscale', 'Stonewoven', 'Battle-Worn'],
+      nouns: ['Breastplate', 'Chestguard', 'Vestments', 'Hauberk', 'Plackart', 'Robes', 'Warplate', 'Carapace', 'Mantle', 'Aegis']
+    },
+    trinket: {
+      prefixes: ['Forgotten', 'Glimmering', 'Cursed', 'Arcane', 'Eternal', "Victor's", 'Bloodstained', 'Fel-Touched', 'Sundered', 'Hallowed'],
+      nouns: ['Talisman', 'Signet', 'Idol', 'Charm', 'Relic', 'Emblem', 'Sigil', 'Medallion', 'Trophy', 'Shard']
+    }
+  };
+
+  /* Possible stat keys a generated item can roll, with relative weight
+     toward "primary" combat stats vs defensive/utility stats.
+     perPointValue is calibrated so a full single-stat budget dump at
+     level 1/common lands near the weakest shop item of that stat, and
+     at level 60/legendary lands well above the best shop item. */
+  const LOOT_STAT_POOL = [
+    { key: 'attackPower', weight: 5, perPointValue: 0.65 },
+    { key: 'spellPower',  weight: 5, perPointValue: 0.65 },
+    { key: 'hp',          weight: 5, perPointValue: 3.0 },
+    { key: 'armor',       weight: 4, perPointValue: 1.3 },
+    { key: 'critChance',  weight: 3, perPointValue: 0.0004 },
+    { key: 'dodgeChance', weight: 3, perPointValue: 0.0004 },
+    { key: 'mana',        weight: 3, perPointValue: 1.8 },
+    { key: 'speed',       weight: 2, perPointValue: 0.001 }
+  ];
 
   /* ── SHOP ITEMS ───────────────────────────────────────── */
   const SHOP_ITEMS = [
@@ -755,5 +801,5 @@
     }
   };
 
-  return { CLASSES, ABILITIES, SHOP_ITEMS, TALENT_TREES, AI_PROFILES };
+  return { CLASSES, ABILITIES, SHOP_ITEMS, TALENT_TREES, AI_PROFILES, RARITY_TIERS, RARITY_ORDER, LOOT_NAME_PARTS, LOOT_STAT_POOL };
 }));

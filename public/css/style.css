@@ -239,6 +239,8 @@ button:focus-visible, input:focus-visible, .side-tab:focus-visible {
 .match-score { display: flex; gap: 6px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--parchment-dark); }
 .match-score .ms-item { display: flex; align-items: center; gap: 4px; background: var(--obsidian); border-radius: 8px; padding: 3px 8px; border: 1px solid var(--obsidian-line); }
 .menu-toggle { display: none; }
+.end-game-btn { border-color: var(--bloodstone); color: #FFB3B8; }
+.end-game-btn:hover { background: var(--bloodstone); color: #fff; }
 
 #gameBody { flex: 1; display: flex; min-height: 0; overflow: hidden; }
 
@@ -286,6 +288,36 @@ button:focus-visible, input:focus-visible, .side-tab:focus-visible {
 .match-winner-banner { font-family: var(--font-display); font-weight: 700; color: var(--bloodstone); margin: 4px 0 10px; }
 .round-overlay-sub { font-size: 0.78rem; color: var(--ink-soft); margin: 0; }
 
+/* ---- Loot overlay ---- */
+.loot-overlay-inner { width: min(480px, 92vw); }
+.loot-section { margin-bottom: 18px; }
+.loot-section:last-of-type { margin-bottom: 10px; }
+.loot-section-title { font-family: var(--font-display); font-size: 0.92rem; color: var(--ink); margin: 0 0 8px; text-align: left; }
+.loot-item-card {
+  display: flex; align-items: center; gap: 12px; background: #FBF8EE; border-radius: var(--radius-md);
+  padding: 12px; margin-bottom: 10px; text-align: left; border: 2px solid var(--rarity-color, #999);
+}
+.loot-item-icon { font-size: 1.8rem; flex-shrink: 0; }
+.loot-item-info { flex: 1; min-width: 0; }
+.loot-item-name { font-weight: 700; font-size: 0.92rem; color: var(--rarity-color, var(--ink)); }
+.loot-item-rarity { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--rarity-color, var(--ink-soft)); }
+.loot-item-stats { font-size: 0.74rem; color: var(--ink-soft); margin-top: 3px; font-family: var(--font-mono); }
+.loot-waiting-note { font-size: 0.78rem; color: var(--ink-soft); font-style: italic; margin: 6px 0; }
+.loot-roll-list { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; max-height: 130px; overflow-y: auto; }
+.loot-roll-row { display: flex; justify-content: space-between; background: #FBF8EE; border-radius: var(--radius-sm); padding: 6px 10px; font-size: 0.8rem; }
+.loot-roll-row .roll-value { font-family: var(--font-mono); font-weight: 700; color: var(--bloodstone); }
+.loot-roll-row.is-winner { background: #FFF3CC; border: 1px solid var(--gold); }
+.loot-roll-row.is-winner .roll-value { color: var(--gold); }
+
+/* ---- Game over screen ---- */
+#gameOverOverlay .round-overlay-inner { width: min(480px, 92vw); }
+.round-result-row.placement-1 { background: linear-gradient(90deg, #FFF3CC, #FBF8EE); }
+
+/* ---- Talent points row + respec ---- */
+.talent-points-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.respec-btn { border-color: var(--bloodstone); color: #FFB3B8; }
+.respec-btn:hover { background: var(--bloodstone); color: #fff; }
+
 .prep-banner {
   position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
   background: rgba(13,11,20,0.85); border: 1px solid var(--gold); border-radius: 20px;
@@ -302,6 +334,18 @@ button:focus-visible, input:focus-visible, .side-tab:focus-visible {
 .gold-display, .talent-points-display { font-size: 0.85rem; margin-bottom: 10px; color: var(--parchment-dark); }
 .gold-display strong { color: var(--gold-bright); font-family: var(--font-mono); }
 .talent-points-display strong { color: var(--frost); font-family: var(--font-mono); }
+
+.inventory-section { margin-bottom: 14px; }
+.inventory-list { display: flex; flex-direction: column; gap: 6px; }
+.inventory-item-card {
+  display: flex; align-items: center; gap: 8px; background: var(--obsidian);
+  border: 1px solid var(--rarity-color, var(--obsidian-line)); border-radius: var(--radius-sm);
+  padding: 7px 9px;
+}
+.inventory-item-icon { font-size: 1.1rem; flex-shrink: 0; }
+.inventory-item-info { flex: 1; min-width: 0; }
+.inventory-item-name { font-size: 0.76rem; font-weight: 700; color: var(--rarity-color, var(--parchment)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inventory-item-stats { font-size: 0.64rem; color: var(--parchment-dark); font-family: var(--font-mono); }
 
 .shop-categories { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
 .shop-cat-btn { background: var(--obsidian); border: 1px solid var(--obsidian-line); color: var(--parchment-dark); border-radius: 12px; padding: 4px 11px; font-size: 0.72rem; font-weight: 600; }
@@ -322,20 +366,32 @@ button:focus-visible, input:focus-visible, .side-tab:focus-visible {
 .shop-item-cost { font-family: var(--font-mono); font-size: 0.78rem; color: var(--gold-bright); font-weight: 700; }
 .shop-item-tag { font-size: 0.6rem; color: var(--parchment-dark); border: 1px solid var(--obsidian-line); border-radius: 4px; padding: 1px 5px; display: inline-block; margin-top: 3px; }
 
-.talent-tree-group { margin-bottom: 16px; }
-.talent-tree-label { font-family: var(--font-display); font-size: 0.8rem; color: var(--gold-bright); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--obsidian-line); padding-bottom: 4px; }
+.talent-tree-group { margin-bottom: 18px; }
+.talent-tree-label { font-family: var(--font-display); font-size: 0.8rem; color: var(--gold-bright); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--obsidian-line); padding-bottom: 4px; }
+.talent-tier-wrap { position: relative; padding-left: 4px; }
+.talent-tier-connector {
+  width: 2px; height: 14px; background: var(--obsidian-line); margin-left: 19px;
+}
+.talent-tier-connector.connector-active { background: var(--gold); }
 .talent-node {
   display: flex; align-items: center; gap: 10px; background: var(--obsidian);
   border: 1px solid var(--obsidian-line); border-radius: var(--radius-sm);
-  padding: 8px; margin-bottom: 6px; cursor: pointer; transition: border-color 0.15s;
+  padding: 8px; margin-bottom: 0; cursor: pointer; transition: border-color 0.15s, opacity 0.15s;
+  position: relative;
 }
 .talent-node:hover:not(.maxed):not(.locked) { border-color: var(--arcane-bright); }
-.talent-node.maxed { border-color: var(--gold); }
-.talent-node.locked { opacity: 0.5; cursor: not-allowed; }
-.talent-icon { font-size: 1.25rem; width: 30px; text-align: center; }
+.talent-node.maxed { border-color: var(--gold); box-shadow: 0 0 8px rgba(217,164,65,0.35); }
+.talent-node.locked { opacity: 0.42; cursor: not-allowed; filter: grayscale(0.5); }
+.talent-icon { font-size: 1.25rem; width: 30px; text-align: center; flex-shrink: 0; }
+.talent-lock-badge {
+  position: absolute; top: -6px; left: 22px; font-size: 0.7rem;
+  background: var(--obsidian-raised); border: 1px solid var(--obsidian-line); border-radius: 50%;
+  width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
+}
 .talent-info { flex: 1; min-width: 0; }
 .talent-name { font-weight: 700; font-size: 0.78rem; }
 .talent-desc { font-size: 0.66rem; color: var(--parchment-dark); }
+.talent-lock-note { font-size: 0.64rem; color: var(--bloodstone-bright); font-style: italic; margin-top: 2px; }
 .talent-pips { display: flex; gap: 3px; flex-shrink: 0; }
 .talent-pip { width: 9px; height: 9px; border-radius: 50%; background: var(--obsidian-line); }
 .talent-pip.filled { background: var(--gold); }
